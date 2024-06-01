@@ -1,20 +1,34 @@
 #include <iostream>
 #include <string>
 #include <conio.h>
+
 using namespace std;
 
 const int MAKS_PENGGUNA = 100;
+const int MAX_HISTORY = 100;
 
 struct DataPengguna
 {
     string namaPengguna, kataSandi, posisi;
 };
 
+struct Dompet
+{
+    double saldo;
+};
+
+struct HistoryTopup
+{
+    string namaPengguna;
+    double jumlahTopup;
+};
+
 DataPengguna penggunaAktif[MAKS_PENGGUNA];
+HistoryTopup historyTopup[MAX_HISTORY];
 int jumlahPengguna = 0;
+int topupIndex = 0;
 
 // FITUR APLIKASI
-
 // FITUR BUAT REGIS GES
 void daftarPengguna(const string &posisi)
 {
@@ -97,155 +111,116 @@ bool loginPengguna(DataPengguna &penggunaSaatIni)
     return false;
 }
 
-struct Stack
+void isiSaldo(Dompet &dompet, double jumlah)
 {
-    int elements[100];
-    int topIndex;
-
-    Stack() : topIndex(-1) {}
-
-    void push(int item)
+    if (jumlah > 0)
     {
-        if (topIndex < 99)
-        {
-            elements[++topIndex] = item;
-        }
-        else
-        {
-            cout << "Kursi sudah penuh" << endl;
-        }
+        dompet.saldo += jumlah;
+        cout << "Top-up berhasil! Saldo baru: " << dompet.saldo << endl;
     }
-
-    void pop()
+    else
     {
-        if (topIndex >= 0)
-        {
-            --topIndex;
-        }
-        else
-        {
-            cout << "kursi masih tersedia " << endl;
-        }
+        cout << "Jumlah harus positif." << endl;
     }
-
-    int &top()
-    {
-        if (topIndex >= 0)
-        {
-            return elements[topIndex];
-        }
-        else
-        {
-            throw out_of_range("Stack::top(): empty stack");
-        }
-    }
-
-    bool empty() const
-    {
-        return topIndex == -1;
-    }
-
-    int size() const
-    {
-        return topIndex + 1;
-    }
-};
-
-struct Kursi
-{
-    Stack slotKursi;
-    int harga;
-};
-
-struct Event
-{
-    string namaEvent;
-    string tanggalEvent;
-    Kursi kelasEvent[3];
-    string namaKelas[3] = {"ekonomi", "reguler", "vip"};
-};
-
-struct Graph
-{
-    Event listEvent[10];
-    int eventCount = 0;
-
-    void tambahEvent(const Event &event)
-    {
-        if (eventCount < 10)
-        {
-            listEvent[eventCount++] = event;
-            cout << "==> Berhasil menambahkan event " << event.namaEvent << endl;
-        }
-        else
-        {
-            cout << "Maksimal event tercapai" << endl;
-        }
-    }
-
-    void tampilkanEvents()
-    {
-        cout << ">>> List event yang ada: " << endl;
-        for (int i = 0; i < eventCount; ++i)
-        {
-            cout << i + 1 << ". " << listEvent[i].namaEvent << " - " << listEvent[i].tanggalEvent << endl;
-        }
-    }
-
-    void tampilkanDetailEvent(int index)
-    {
-        if (index < 0 || index >= eventCount)
-        {
-            cout << "Event tidak ditemukan!" << endl;
-            return;
-        }
-        Event &event = listEvent[index];
-        cout << "Nama Event   : " << event.namaEvent << endl;
-        cout << "Tanggal Event: " << event.tanggalEvent << endl;
-        for (int i = 0; i < 3; ++i)
-        {
-            cout << "Kelas " << event.namaKelas[i] << " - ";
-            cout << "Harga: " << event.kelasEvent[i].harga << ", ";
-            cout << "Jumlah Kursi: " << event.kelasEvent[i].slotKursi.size() << endl;
-        }
-    }
-};
-
-Event buatEventBaru()
-{
-    Event event;
-    cout << "=======================================" << endl;
-    cout << "=          Tambah Event Baru          =" << endl;
-    cout << "=======================================" << endl;
-    cout << "- Nama event         : ";
-    getline(cin >> ws, event.namaEvent);
-    cout << "- Tanggal event      : ";
-    getline(cin, event.tanggalEvent);
-
-    for (int i = 0; i < 3; ++i)
-    {
-        int slot;
-        cout << "- Jumlah slot kursi " << event.namaKelas[i] << " : ";
-        cin >> slot;
-        cin.ignore();
-        for (int j = 0; j < slot; ++j)
-        {
-            event.kelasEvent[i].slotKursi.push(1);
-        }
-        cout << "  Harga: ";
-        cin >> event.kelasEvent[i].harga;
-        cin.ignore();
-    }
-
-    return event;
 }
 
-// MAIN
+void tambahHistoryTopup(const string &namaPengguna, double jumlahTopup)
+{
+    if (topupIndex < MAX_HISTORY)
+    {
+        historyTopup[topupIndex].namaPengguna = namaPengguna;
+        historyTopup[topupIndex].jumlahTopup = jumlahTopup;
+        ++topupIndex;
+    }
+    else
+    {
+        cout << "Riwayat top-up penuh!" << endl;
+    }
+}
+
+void cetakHistoryTopup(const string &namaPengguna)
+{
+    bool ditemukan = false;
+    cout << "Nama Pengguna\tJumlah Topap\n";
+    cout << "-----------------------------\n";
+
+    for (int i = 0; i < topupIndex; ++i)
+    {
+        if (historyTopup[i].namaPengguna == namaPengguna)
+        {
+            cout << historyTopup[i].namaPengguna << "\t" << historyTopup[i].jumlahTopup << endl;
+            ditemukan = true;
+        }
+    }
+    if (!ditemukan)
+    {
+        cout << "Tidak ada riwayat top-up untuk " << namaPengguna << endl;
+    }
+}
+
+void prosesTopup(Dompet &dompet, const string &namaPengguna)
+{
+    double jumlah;
+    string input;
+    cout << "Masukkan jumlah untuk top-up: ";
+    cin >> jumlah;
+    cout << "Anda akan menambah saldo sebesar: " << jumlah << ". Konfirmasi (y/n): ";
+    cin >> input;
+    if (input == "y" || input == "Y")
+    {
+        isiSaldo(dompet, jumlah);
+        tambahHistoryTopup(namaPengguna, jumlah);
+    }
+    else
+    {
+        cout << "Topap dibatalkan.\n";
+    }
+}
+
+void tampilkanMenu(Dompet &dompet, const string &namaPengguna)
+{
+    string input;
+    while (true)
+
+    {
+        cout << "=============================";
+        cout << "\n";
+        cout << "Pilih opsi buat berak:\n";
+        cout << "1. Topap saldo\n";
+        cout << "2. Periksa saldo\n";
+        cout << "3. Lihat riwayat \n";
+        cout << "Ketik 'keluar' untuk mengakhiri\n";
+        cout << "Masukkan pilihan Anda: ";
+        cin >> input;
+
+        if (input == "keluar")
+        {
+            break;
+        }
+        else if (input == "1")
+        {
+            prosesTopup(dompet, namaPengguna);
+        }
+        else if (input == "2")
+        {
+            cout << "Saldo saat ini: " << dompet.saldo << endl;
+        }
+        else if (input == "3")
+        {
+            cetakHistoryTopup(namaPengguna);
+        }
+        else
+        {
+            cout << "Pilihan tidak valid." << endl;
+        }
+    }
+}
+
 int main()
 {
-    int pilihan;
+    Dompet dompetSaya = {0.0};
     DataPengguna penggunaSaatIni;
-    Graph graph;
+    int pilihan;
 
     do
     {
@@ -253,10 +228,7 @@ int main()
         cout << "1. Daftar sebagai Pembeli\n";
         cout << "2. Daftar sebagai Penjual\n";
         cout << "3. Login\n";
-        cout << "4. Tambah Event Baru\n";
-        cout << "5. Tampilkan Event\n";
-        cout << "6. Tampilkan Detail Event\n";
-        cout << "7. Keluar\n";
+        cout << "4. Keluar\n";
         cout << "Pilih menu: ";
         cin >> pilihan;
 
@@ -273,40 +245,10 @@ int main()
             if (loginPengguna(penggunaSaatIni))
             {
                 cout << "Selamat datang, " << penggunaSaatIni.namaPengguna << " (" << penggunaSaatIni.posisi << ")" << endl;
+                tampilkanMenu(dompetSaya, penggunaSaatIni.namaPengguna);
             }
         }
         else if (pilihan == 4)
-        {
-            if (penggunaSaatIni.posisi == "Penjual")
-            {
-                Event event = buatEventBaru();
-                graph.tambahEvent(event);
-            }
-            else
-            {
-                cout << "Hanya penjual yang dapat menambah event." << endl;
-            }
-        }
-        else if (pilihan == 5)
-        {
-            graph.tampilkanEvents();
-        }
-        else if (pilihan == 6)
-        {
-            if (penggunaSaatIni.posisi == "Penjual")
-            {
-                int index;
-                graph.tampilkanEvents();
-                cout << "Pilih nomor event untuk melihat detail: ";
-                cin >> index;
-                graph.tampilkanDetailEvent(index - 1);
-            }
-            else
-            {
-                cout << "Hanya penjual yang dapat melihat detail event." << endl;
-            }
-        }
-        else if (pilihan == 7)
         {
             cout << "Terima kasih telah menggunakan aplikasi kami!" << endl;
         }
@@ -314,7 +256,7 @@ int main()
         {
             cout << "Pilihan tidak valid!" << endl;
         }
-    } while (pilihan != 7);
+    } while (pilihan != 4);
 
     return 0;
 }
