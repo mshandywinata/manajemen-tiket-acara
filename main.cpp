@@ -471,11 +471,11 @@ void dfs(int start, vector<Lagu>& rekomendasi, const string &filename)
     {
         if (!visited[neighbor])
         {
-            if (!findQueue(daftarLagu[neighbor].judul, filename)) 
+            if ((daftarLagu[neighbor].artis == daftarLagu[start].artis || daftarLagu[neighbor].genre == daftarLagu[start].genre) && !findQueue(daftarLagu[neighbor].judul, filename)) 
             {
                 rekomendasi.push_back(daftarLagu[neighbor]);
+                dfs(neighbor, rekomendasi, filename);
             }
-            dfs(neighbor, rekomendasi, filename);
         }
     }
 }
@@ -502,8 +502,7 @@ void buatGraphCsv()
     }
 
     string line;
-    while (getline(file, line))
-    
+    while (getline(file, line))    
     {
         stringstream ss(line);
         string judul, artis, genre;
@@ -514,7 +513,6 @@ void buatGraphCsv()
 
         daftarLagu.push_back({judul, artis, genre});
     }
-
     buatGraph(daftarLagu.size());
 
     // Menambahkan edge berdasarkan kesamaan artis atau genre
@@ -619,7 +617,7 @@ int main()
                             {
                                 if (cekJudul(judul, DATA_LAGU)) // Ganti dengan nama file yang berisi data lagu
                                 {
-                                    Lagu lagu = getLaguInfo(judul, "dataLagu.csv");
+                                    Lagu lagu = getLaguInfo(judul, DATA_LAGU);
                                     enqueue(lagu);
                                     tambahLaguKeCsv(user.username);
                                 }
