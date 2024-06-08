@@ -414,32 +414,6 @@ bool findQueue(const string& target)
     return false;
 }
 
-bool findQueue(const string& target)
-{
-    if (isEmpty())
-    {
-        return false;
-    }
-
-    int i = queue.front;
-    while (true)
-    {
-        if (queue.isi[i].judul == target)
-        {
-            return true;
-        }
-
-        if (i == queue.rear)
-        {
-            break;
-        }
-
-        i = (i + 1) % MAKS_QUEUE;
-    }
-
-    return false;
-}
-
 Lagu getLaguInfo(const string &judul, const string &filename)
 {
     ifstream file(filename);
