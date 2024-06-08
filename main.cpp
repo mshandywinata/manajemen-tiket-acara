@@ -5,9 +5,11 @@
 #include <conio.h>
 #include <vector>
 #include <algorithm>
-#include <iomanip> // for std::setw
+#include <iomanip>
+#include <filesystem>
 
 using namespace std;
+namespace fs = filesystem;
 
 struct dataPengguna
 {
@@ -22,50 +24,79 @@ public:
     string password;
 };
 
-// FITUR REGIS LOGIN ===========================================================
-
 void displayInput(const string &inputan, string &inputValue)
 {
-    cout << "+-----------------------------+\n";
-    cout << "| " << left << setw(27) << ("Masukkan " + inputan) << " |\n";
-    cout << "+-----------------------------+\n";
-    cout << "| ";
-    cin >> inputValue;
-    cout << "+-----------------------------+\n";
+    while (true)
+    {
+        cout << "+-----------------------------+\n";
+        cout << "| " << left << setw(27) << ("Masukkan " + inputan) << " |\n";
+        cout << "+-----------------------------+\n";
+        cout << "| ";
+        getline(cin, inputValue);
+        cout << "+-----------------------------+\n";
+
+        if (inputValue.empty())
+        {
+            cout << "Mohon masukkan " << inputan << " terlebih dahulu" << endl;
+        }
+        else
+        {
+            break;
+        }
+    }
 }
 
 void displayPasswordPrompt(string &password)
 {
-    cout << "+-----------------------------+\n";
-    cout << "| " << left << setw(27) << "Masukkan password"
-         << " |\n";
-    cout << "+-----------------------------+\n";
-    cout << "| ";
-
-    char karakter;
-    while ((karakter = _getch()) != '\r')
+    while (true)
     {
-        if (karakter == '\b')
+        cout << "+-----------------------------+\n";
+        cout << "| " << left << setw(27) << "Masukkan password"
+             << " |\n";
+        cout << "+-----------------------------+\n";
+        cout << "| ";
+
+        password.clear();
+        char karakter;
+        while ((karakter = _getch()) != '\r')
         {
-            if (!password.empty())
+            if (karakter == '\b')
             {
-                cout << "\b \b";
-                password.pop_back();
+                if (!password.empty())
+                {
+                    cout << "\b \b";
+                    password.pop_back();
+                }
             }
+            else
+            {
+                cout << '*';
+                password += karakter;
+            }
+        }
+        cout << "\n+-----------------------------+\n";
+
+        if (password.empty())
+        {
+            cout << "Mohon masukkan password terlebih dahulu" << endl;
         }
         else
         {
-            cout << '*';
-            password += karakter;
+            break;
         }
     }
-    cout << "\n+-----------------------------+\n";
 }
 
 void registerUser(User &user)
 {
     displayInput("username", user.username);
     displayPasswordPrompt(user.password);
+
+    // Check if the output directory exists, if not, create it
+    if (!fs::exists("output"))
+    {
+        fs::create_directory("output");
+    }
 
     ofstream file("output/users.csv", ios::app);
     if (file.is_open())
@@ -95,6 +126,9 @@ bool loginUser(User &user)
             stringstream ss(line);
             getline(ss, dataUsername, ',');
             getline(ss, dataPassword, ',');
+
+            // Debugging output
+            cout << "Membaca dari file: Username=" << dataUsername << ", Password=" << dataPassword << endl;
 
             if (dataUsername == user.username)
             {
@@ -204,6 +238,13 @@ void dequeue()
 void tambahLaguKeCsv(const string &username)
 {
     string filename = "dataLaguUser/" + username + ".csv";
+    
+    // Check if the directory exists, if not, create it
+    if (!fs::exists("dataLaguUser"))
+    {
+        fs::create_directory("dataLaguUser");
+    }
+
     ofstream file(filename, ios::app);
 
     if (!file.is_open())
@@ -318,24 +359,33 @@ void deleteQueue(const string &judul, const string &filename)
             laguList.push_back({judulLagu, artis, genre});
         }
     }
-
     file.close();
 
     if (!found)
     {
-        cout << "Data tidak ditemukan\n"
+        cout << "Judul lagu tidak ditemukan dalam antrian.\n"
              << endl;
         return;
     }
 
     ofstream outFile(filename);
+    if (!outFile.is_open())
+    {
+        cout << "Tidak dapat membuka file untuk menulis data.\n"
+             << endl;
+        return;
+    }
 
     for (const auto &lagu : laguList)
     {
-        outFile << lagu.judul << "," << lagu.artis << "," << lagu.genre << "\n";
+        outFile << lagu.judul << ","
+                << lagu.artis << ","
+                << lagu.genre << "\n";
     }
 
     outFile.close();
+    cout << "Lagu berhasil dihapus dari antrian.\n"
+         << endl;
 }
 
 Lagu getLaguInfo(const string &judul, const string &filename)
@@ -352,12 +402,13 @@ Lagu getLaguInfo(const string &judul, const string &filename)
     {
         stringstream ss(line);
         string judulLagu, artis, genre;
-
         getline(ss, judulLagu, ',');
+        getline(ss, artis, ',');
+        getline(ss, genre, ',');
+
         if (judulLagu == judul)
         {
-            getline(ss, artis, ',');
-            getline(ss, genre, ',');
+            file.close();
             return {judulLagu, artis, genre};
         }
     }
@@ -366,19 +417,20 @@ Lagu getLaguInfo(const string &judul, const string &filename)
     return {"", "", ""};
 }
 
+// MAIN FUNCTION ===========================================================
+
 void displayMenu()
 {
-    system("cls");
-    cout << "\n=== Selamat Datang di Aplikasi ===\n";
-    cout << "+----+------------------------+\n";
-    cout << "| No | Pilihan menu kami      |\n";
-    cout << "+----+------------------------+\n";
-    cout << "| 1  | Daftar                 |\n";
-    cout << "+----+------------------------+\n";
-    cout << "| 2  | Login                  |\n";
-    cout << "+----+------------------------+\n";
-    cout << "| 3  | Keluar                 |\n";
-    cout << "+----+------------------------+\n";
+    cout << "          === MUSIKKU ===          " << endl;
+    cout << "+----+----------------------------+\n";
+    cout << "| No | Menu                       |\n";
+    cout << "+----+----------------------------+\n";
+    cout << "| 1  | Registrasi                 |\n";
+    cout << "+----+----------------------------+\n";
+    cout << "| 2  | Login                      |\n";
+    cout << "+----+----------------------------+\n";
+    cout << "| 3  | Keluar                     |\n";
+    cout << "+----+----------------------------+\n";
     cout << "Pilih opsi: ";
 }
 
@@ -392,6 +444,7 @@ int main()
     {
         displayMenu();
         cin >> pilihan;
+        cin.ignore(); // to clear the newline character from the input buffer
 
         if (pilihan == 1)
         {
