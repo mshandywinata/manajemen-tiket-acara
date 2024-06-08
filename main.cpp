@@ -338,6 +338,32 @@ void deleteQueue(const string &judul, const string &filename)
     outFile.close();
 }
 
+bool findQueue(const string& target)
+{
+    if (isEmpty())
+    {
+        return false;
+    }
+
+    int i = queue.front;
+    while (true)
+    {
+        if (queue.isi[i].judul == target)
+        {
+            return true;
+        }
+
+        if (i == queue.rear)
+        {
+            break;
+        }
+
+        i = (i + 1) % MAKS_QUEUE;
+    }
+
+    return false;
+}
+
 Lagu getLaguInfo(const string &judul, const string &filename)
 {
     ifstream file(filename);
@@ -364,6 +390,50 @@ Lagu getLaguInfo(const string &judul, const string &filename)
 
     file.close();
     return {"", "", ""};
+}
+
+int vertex;
+vector<vector<int>> adj;
+vector<Lagu> daftarLagu;
+vector<bool> visited;
+
+void buatGraph(int v) {
+    vertex = v;
+    adj.resize(v);
+    visited.resize(v, false);
+}
+
+void tambahEdge(int vAsal, int vTujuan)
+{
+    adj[vAsal].push_back(vTujuan);
+    adj[vTujuan].push_back(vAsal);
+}
+
+void dfs(int start, vector<Lagu>& rekomendasi)
+{
+    visited[start] = true;
+    for (int neighbor : adj[start])
+    {
+        if (!visited[neighbor])
+        {
+            if (!findQueue(daftarLagu[neighbor].judul)) 
+            {
+                rekomendasi.push_back(daftarLagu[neighbor]);
+            }
+            dfs(neighbor, rekomendasi);
+        }
+    }
+}
+
+int cariItem(const string& item)
+{
+    for (size_t i = 0; i < daftarLagu.size(); ++i)
+    {
+        if (daftarLagu[i].judul == item) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 void displayMenu()
@@ -420,7 +490,9 @@ int main()
                     cout << "+----+------------------------+\n";
                     cout << "| 2  | Hapus Lagu             |\n";
                     cout << "+----+------------------------+\n";
-                    cout << "| 3  | Keluar                 |\n";
+                    cout << "| 3  | Hasil Rekomendasi      |\n";
+                    cout << "+----+------------------------+\n";
+                    cout << "| 4  | Keluar                 |\n";
                     cout << "+----+------------------------+\n";
                     cout << "Pilih opsi: ";
 
@@ -506,11 +578,68 @@ int main()
                     }
                     else if (opsiMenu == "3")
                     {
+                        system("cls");
+                        cout << "       === HASIL REKOMENDASI ===     \n" << endl;
+                        if (isEmpty()) {
+                            cout << "Daftar lagu masih kosong, tambahkan beberapa lagu terlebih dahulu." << endl;
+                        } else {
+                            vector<Lagu> daftarRekomendasi;
+
+                            for (int i = queue.front; ; i = (i + 1) % MAKS_QUEUE) {
+                                int songIndex = cariItem(queue.isi[i].judul);
+                                if (songIndex != -1) {
+                                    fill(visited.begin(), visited.end(), false);
+                                    dfs(songIndex, daftarRekomendasi);
+                                }
+                                if (i == queue.rear) break;
+                            }
+
+                            // mengurutkan sesuai abjad & hapus duplikasi
+                            sort(daftarRekomendasi.begin(), daftarRekomendasi.end(), [](const Lagu &a, const Lagu &b) {
+                                return a.judul < b.judul;
+                            });
+                            daftarRekomendasi.erase(unique(daftarRekomendasi.begin(), daftarRekomendasi.end(), [](const Lagu &a, const Lagu &b) {
+                                return a.judul == b.judul;
+                            }), daftarRekomendasi.end());
+
+                            // tampilan rekomendasi dalam batch
+                            int totalRekomendasi = daftarRekomendasi.size();
+                            int batchSize = 10;
+                            int start = 0;
+
+                            while (start < totalRekomendasi) {
+                                system("cls");
+                                cout << "       === HASIL REKOMENDASI ===     \n" << endl;
+                                cout << "========== Menampilkan rekomendasi dari " << start + 1 << " hingga " << min(start + batchSize, totalRekomendasi) << " dari total " << totalRekomendasi << " rekomendasi. ==========" << endl;
+
+                                for (int i = start; i < start + batchSize && i < totalRekomendasi; ++i) {
+                                    cout << daftarRekomendasi[i].judul << " - " << daftarRekomendasi[i].artis << " - " << daftarRekomendasi[i].genre << endl;
+                                }
+
+                                if (start + batchSize >= totalRekomendasi) {
+                                    break;
+                                }
+
+                                cout << "\nIngin melihat 10 rekomendasi lagu selanjutnya? (y/t)\n> ";
+                                string jawaban;
+                                cin >> jawaban;
+                                if (jawaban[0] == 'y') {
+                                    start += batchSize;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                        system("pause");
+                    }
+                    else if (opsiMenu == "4")
+                    {
                         break;
                     }
                     else
                     {
                         cout << "Input tidak valid!" << endl;
+                        system("cls");
                     }
                 }
             }
