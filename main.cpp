@@ -447,6 +447,7 @@ Lagu getLaguInfo(const string &judul, const string &filename)
     return {"", "", ""};
 }
 
+// GRAF & DFS UNTUK REKOMENDASI LAGU
 int vertex;
 vector<vector<int>> adj;
 vector<Lagu> daftarLagu;
@@ -464,18 +465,17 @@ void tambahEdge(int vAsal, int vTujuan)
     adj[vTujuan].push_back(vAsal);
 }
 
-void dfs(int start, vector<Lagu>& rekomendasi, const string &filename)
-{
+void dfs(int start, vector<Lagu>& rekomendasi, const vector<string>& artisQueue, const vector<string>& genreQueue, const string& filename) {
     visited[start] = true;
-    for (int neighbor : adj[start])
-    {
-        if (!visited[neighbor])
-        {
-            if (!findQueue(daftarLagu[neighbor].judul, filename)) 
+    for (int neighbor : adj[start]) {
+        if (!visited[neighbor]) {
+            if (!findQueue(daftarLagu[neighbor].judul, filename) &&
+                (find(artisQueue.begin(), artisQueue.end(), daftarLagu[neighbor].artis) != artisQueue.end() ||
+                 find(genreQueue.begin(), genreQueue.end(), daftarLagu[neighbor].genre) != genreQueue.end())) 
             {
                 rekomendasi.push_back(daftarLagu[neighbor]);
             }
-            dfs(neighbor, rekomendasi, filename);
+            dfs(neighbor, rekomendasi, artisQueue, genreQueue, filename);
         }
     }
 }
@@ -495,39 +495,34 @@ void buatGraphCsv()
 {
     ifstream file(DATA_LAGU);
 
-    if (!file.is_open())
-    {
+    if (!file.is_open()) {
         cout << "Unable to open file";
         return;
     }
 
     string line;
-    while (getline(file, line))
-    
-    {
+    while (getline(file, line)) {
         stringstream ss(line);
         string judul, artis, genre;
 
-        getline(ss, judul, ',');
-        getline(ss, artis, ',');
-        getline(ss, genre, ',');
+        getline(ss,judul,',');
+        getline(ss,artis,',');
+        getline(ss,genre,',');
 
-        daftarLagu.push_back({judul, artis, genre});
+        daftarLagu.push_back({judul,artis,genre});
     }
 
     buatGraph(daftarLagu.size());
 
-    // Menambahkan edge berdasarkan kesamaan artis atau genre
-    for (size_t i = 0; i < daftarLagu.size(); ++i)
-    {
-        for (size_t j = i + 1; j < daftarLagu.size(); ++j)
-        {
-            if (daftarLagu[i].artis == daftarLagu[j].artis || daftarLagu[i].genre == daftarLagu[j].genre)
-            {
+    // Membuat graf berdasarkan kesamaan artis atau genre
+    for (size_t i = 0; i < daftarLagu.size(); ++i) {
+        for (size_t j = i + 1; j < daftarLagu.size(); ++j) {
+            if (daftarLagu[i].artis == daftarLagu[j].artis || daftarLagu[i].genre == daftarLagu[j].genre) {
                 tambahEdge(i, j);
             }
         }
     }
+
     file.close();
 }
 
@@ -619,7 +614,7 @@ int main()
                             {
                                 if (cekJudul(judul, DATA_LAGU)) // Ganti dengan nama file yang berisi data lagu
                                 {
-                                    Lagu lagu = getLaguInfo(judul, "dataLagu.csv");
+                                    Lagu lagu = getLaguInfo(judul, DATA_LAGU);
                                     enqueue(lagu);
                                     tambahLaguKeCsv(user.username);
                                 }
@@ -676,13 +671,15 @@ int main()
                         system("cls");
                         cout << "       === HASIL REKOMENDASI ===     \n" << endl;
                         vector<Lagu> daftarRekomendasi;
+                        vector<string> artisQueue;
+                        vector<string> genreQueue;
 
                         ifstream file(filename);
                         if (!file.is_open()) {
                             cout << "Tidak dapat membuka file " << filename << endl;
                             return 1;
                         }
-
+                        
                         string line;
                         while (getline(file, line)) {
                             stringstream ss(line);
@@ -691,12 +688,16 @@ int main()
                             getline(ss, artis, ',');
                             getline(ss, genre, ',');
 
+                            artisQueue.push_back(artis);
+                            genreQueue.push_back(genre);
+
                             int songIndex = cariItem(judul);
+                            system("pause");
                             if (songIndex != -1) {
                                 fill(visited.begin(), visited.end(), false);
-                                dfs(songIndex, daftarRekomendasi, filename);
+                                dfs(songIndex, daftarRekomendasi, artisQueue, genreQueue, filename);
                             }
-                        }
+                        } file.close();
                         
                         // mengurutkan sesuai abjad & hapus duplikasi
                         sort(daftarRekomendasi.begin(), daftarRekomendasi.end(), [](const Lagu &a, const Lagu &b) {
