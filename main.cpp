@@ -692,7 +692,6 @@ int main()
                             genreQueue.push_back(genre);
 
                             int songIndex = cariItem(judul);
-                            system("pause");
                             if (songIndex != -1) {
                                 fill(visited.begin(), visited.end(), false);
                                 dfs(songIndex, daftarRekomendasi, artisQueue, genreQueue, filename);
@@ -718,10 +717,11 @@ int main()
                             cout << "========== Menampilkan rekomendasi dari " << start + 1 << " hingga " << min(start + batchSize, totalRekomendasi) << " dari total " << totalRekomendasi << " rekomendasi. ==========" << endl;
 
                             for (int i = start; i < start + batchSize && i < totalRekomendasi; ++i) {
-                                cout << daftarRekomendasi[i].judul << " - " << daftarRekomendasi[i].artis << " - " << daftarRekomendasi[i].genre << endl;
+                                cout << "[" << i + 1 << "] " << daftarRekomendasi[i].judul << " - " << daftarRekomendasi[i].artis << " - " << daftarRekomendasi[i].genre << endl;
                             }
 
                             if (start + batchSize >= totalRekomendasi) {
+                                system("pause");
                                 break;
                             }
 
@@ -734,7 +734,6 @@ int main()
                                 break;
                             }
                         }
-                        system("pause");
                     }
                     else if (opsiMenu == "4")
                     {
