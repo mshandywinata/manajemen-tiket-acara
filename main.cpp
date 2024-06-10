@@ -93,7 +93,7 @@ void registerUser(User &user)
     displayInput("username", user.username);
     displayPasswordPrompt(user.password);
 
-    // Check if the output directory exists, if not, create it
+    // Memeriksa direktori ada atau tidak, jika tidak, maka buat baru
     if (!fs::exists("output"))
     {
         fs::create_directory("output");
@@ -129,9 +129,6 @@ bool loginUser(User &user)
             stringstream ss(line);
             getline(ss, dataUsername, ',');
             getline(ss, dataPassword, ',');
-
-            // // Debugging output
-            // cout << "Membaca dari file: Username=" << dataUsername << ", Password=" << dataPassword << endl;
 
             if (dataUsername == user.username)
             {
@@ -274,7 +271,7 @@ void tambahLaguKeCsv(const string &username)
 {
     string filename = "dataLaguUser/" + username + ".csv";
 
-    // Check if the directory exists, if not, create it
+    // Memeriksa direktori ada atau tidak, jika tidak, maka buat baru
     if (!fs::exists("dataLaguUser"))
     {
         fs::create_directory("dataLaguUser");
@@ -582,7 +579,7 @@ int main()
         system("cls");
         displayMenu();
         cin >> pilihan;
-        cin.ignore(); // to clear the newline character from the input buffer
+        cin.ignore();
 
         if (pilihan == "1")
         {
@@ -611,9 +608,11 @@ int main()
                     cout << "+----+------------------------+\n";
                     cout << "| 2  | Hapus Lagu             |\n";
                     cout << "+----+------------------------+\n";
-                    cout << "| 3  | Hasil Rekomendasi      |\n";
+                    cout << "| 3  | Tampilkan Lagu         |\n";
                     cout << "+----+------------------------+\n";
-                    cout << "| 4  | Keluar                 |\n";
+                    cout << "| 4  | Hasil Rekomendasi      |\n";
+                    cout << "+----+------------------------+\n";
+                    cout << "| 5  | Keluar                 |\n";
                     cout << "+----+------------------------+\n";
                     cout << "Pilih opsi: ";
 
@@ -700,6 +699,13 @@ int main()
                     else if (opsiMenu == "3")
                     {
                         system("cls");
+                        cout << "       === TAMPILKAN LAGU ===     \n"<< endl;
+                        displayQueue(filename);
+                        system("pause");
+                    }
+                    else if (opsiMenu == "4")
+                    {
+                        system("cls");
                         cout << "       === HASIL REKOMENDASI ===     \n"<< endl;
                         vector<Lagu> daftarRekomendasi;
                         vector<string> artisQueue;
@@ -783,13 +789,14 @@ int main()
                             }
                         }
                     }
-                    else if (opsiMenu == "4")
+                    else if (opsiMenu == "5")
                     {
                         break;
                     }
                     else
                     {
                         cout << "Input tidak valid!" << endl;
+                        system("pause");
                         system("cls");
                     }
                 }
