@@ -110,7 +110,6 @@ void registerUser(User &user)
     else
     {
         cout << "\nGagal membuka file" << endl;
-        cout << "Belum ada user yang terdaftar" << endl;
         system("pause");
     }
 }
@@ -163,6 +162,7 @@ bool loginUser(User &user)
     else
     {
         cout << "\nGagal membuka file" << endl;
+        cout << "Belum ada user yang terdaftar" << endl;
         system("pause");
     }
 
@@ -243,37 +243,6 @@ void dequeue()
     }
 }
 
-void tambahLaguKeCsv(const string &username)
-{
-    string filename = "dataLaguUser/" + username + ".csv";
-    
-    // Check if the directory exists, if not, create it
-    if (!fs::exists("dataLaguUser"))
-    {
-        fs::create_directory("dataLaguUser");
-    }
-
-    ofstream file(filename, ios::app);
-
-    if (!file.is_open())
-    {
-        cout << "Tidak dapat membuka file untuk menambahkan data." << endl;
-        return;
-    }
-
-    while (!isEmpty())
-    {
-        file << queue.isi[queue.front].judul << ","
-             << queue.isi[queue.front].artis << ","
-             << queue.isi[queue.front].genre << "\n";
-        dequeue();
-    }
-
-    file.close();
-    cout << "Lagu-lagu berhasil ditambahkan ke dalam file CSV untuk pengguna " << username << "\n"
-         << endl;
-}
-
 bool cekJudul(const string &judul, const string &filename)
 {
     ifstream file(filename);
@@ -299,6 +268,49 @@ bool cekJudul(const string &judul, const string &filename)
 
     file.close();
     return false;
+}
+
+void tambahLaguKeCsv(const string &username)
+{
+    string filename = "dataLaguUser/" + username + ".csv";
+
+    // Check if the directory exists, if not, create it
+    if (!fs::exists("dataLaguUser"))
+    {
+        fs::create_directory("dataLaguUser");
+    }
+
+    ofstream file(filename, ios::app);
+
+    if (!file.is_open())
+    {
+        cout << "Tidak dapat membuka file untuk menambahkan data." << endl;
+        return;
+    }
+
+    while (!isEmpty())
+    {
+        Lagu currentLagu = queue.isi[queue.front];
+        string judulLagu = currentLagu.judul;
+
+        // Cek apakah judul lagu sudah ada di file CSV
+        if (cekJudul(judulLagu, filename))
+        {
+            cout << "Lagu dengan judul \"" << judulLagu << "\" sudah ada dalam data." << endl;
+        }
+        else
+        {
+            file << currentLagu.judul << ","
+                 << currentLagu.artis << ","
+                 << currentLagu.genre << "\n";
+            cout << "Menambahkan lagu: " << currentLagu.judul << ", "
+                 << currentLagu.artis << ", "
+                 << currentLagu.genre << endl;
+        }
+        queue.front = queue.rear = -1;
+    }
+
+    file.close();
 }
 
 void displayQueue(const string &filename)
@@ -460,7 +472,8 @@ vector<vector<int>> adj;
 vector<Lagu> daftarLagu;
 vector<bool> visited;
 
-void buatGraph(int v) {
+void buatGraph(int v)
+{
     vertex = v;
     adj.resize(v);
     visited.resize(v, false);
@@ -472,13 +485,16 @@ void tambahEdge(int vAsal, int vTujuan)
     adj[vTujuan].push_back(vAsal);
 }
 
-void dfs(int start, vector<Lagu>& rekomendasi, const vector<string>& artisQueue, const vector<string>& genreQueue, const string& filename) {
+void dfs(int start, vector<Lagu> &rekomendasi, const vector<string> &artisQueue, const vector<string> &genreQueue, const string &filename)
+{
     visited[start] = true;
-    for (int neighbor : adj[start]) {
-        if (!visited[neighbor]) {
+    for (int neighbor : adj[start])
+    {
+        if (!visited[neighbor])
+        {
             if (!findQueue(daftarLagu[neighbor].judul, filename) &&
                 (find(artisQueue.begin(), artisQueue.end(), daftarLagu[neighbor].artis) != artisQueue.end() ||
-                 find(genreQueue.begin(), genreQueue.end(), daftarLagu[neighbor].genre) != genreQueue.end())) 
+                 find(genreQueue.begin(), genreQueue.end(), daftarLagu[neighbor].genre) != genreQueue.end()))
             {
                 rekomendasi.push_back(daftarLagu[neighbor]);
             }
@@ -487,11 +503,12 @@ void dfs(int start, vector<Lagu>& rekomendasi, const vector<string>& artisQueue,
     }
 }
 
-int cariItem(const string& item)
+int cariItem(const string &item)
 {
     for (size_t i = 0; i < daftarLagu.size(); ++i)
     {
-        if (daftarLagu[i].judul == item) {
+        if (daftarLagu[i].judul == item)
+        {
             return i;
         }
     }
@@ -502,29 +519,34 @@ void buatGraphCsv()
 {
     ifstream file(DATA_LAGU);
 
-    if (!file.is_open()) {
+    if (!file.is_open())
+    {
         cout << "Unable to open file";
         return;
     }
 
     string line;
-    while (getline(file, line)) {
+    while (getline(file, line))
+    {
         stringstream ss(line);
         string judul, artis, genre;
 
-        getline(ss,judul,',');
-        getline(ss,artis,',');
-        getline(ss,genre,',');
+        getline(ss, judul, ',');
+        getline(ss, artis, ',');
+        getline(ss, genre, ',');
 
-        daftarLagu.push_back({judul,artis,genre});
+        daftarLagu.push_back({judul, artis, genre});
     }
 
     buatGraph(daftarLagu.size());
 
     // Membuat graf berdasarkan kesamaan artis atau genre
-    for (size_t i = 0; i < daftarLagu.size(); ++i) {
-        for (size_t j = i + 1; j < daftarLagu.size(); ++j) {
-            if (daftarLagu[i].artis == daftarLagu[j].artis || daftarLagu[i].genre == daftarLagu[j].genre) {
+    for (size_t i = 0; i < daftarLagu.size(); ++i)
+    {
+        for (size_t j = i + 1; j < daftarLagu.size(); ++j)
+        {
+            if (daftarLagu[i].artis == daftarLagu[j].artis || daftarLagu[i].genre == daftarLagu[j].genre)
+            {
                 tambahEdge(i, j);
             }
         }
@@ -559,7 +581,8 @@ int main()
     {
         system("cls");
         displayMenu();
-        cin >> pilihan; cin.ignore();
+        cin >> pilihan;
+        cin.ignore(); // to clear the newline character from the input buffer
 
         if (pilihan == "1")
         {
@@ -641,7 +664,8 @@ int main()
                         {
                             ifstream file(filename);
 
-                            cout << "       === HAPUS LAGU ===     \n"<< endl;
+                            cout << "       === HAPUS LAGU ===     \n"
+                                 << endl;
 
                             displayQueue(filename);
                             cout << endl;
@@ -676,7 +700,7 @@ int main()
                     else if (opsiMenu == "3")
                     {
                         system("cls");
-                        cout << "       === HASIL REKOMENDASI ===     \n" << endl;
+                        cout << "       === HASIL REKOMENDASI ===     \n"<< endl;
                         vector<Lagu> daftarRekomendasi;
                         vector<string> artisQueue;
                         vector<string> genreQueue;
@@ -687,9 +711,10 @@ int main()
                             system("pause");
                             continue;
                         }
-                        
+
                         string line;
-                        while (getline(file, line)) {
+                        while (getline(file, line))
+                        {
                             stringstream ss(line);
                             string judul, artis, genre;
                             getline(ss, judul, ',');
@@ -700,12 +725,14 @@ int main()
                             genreQueue.push_back(genre);
 
                             int songIndex = cariItem(judul);
-                            if (songIndex != -1) {
+                            if (songIndex != -1)
+                            {
                                 fill(visited.begin(), visited.end(), false);
                                 dfs(songIndex, daftarRekomendasi, artisQueue, genreQueue, filename);
                             }
-                        } file.close();
-                        
+                        }
+                        file.close();
+
                         // mengurutkan sesuai abjad & hapus duplikasi
                         sort(daftarRekomendasi.begin(), daftarRekomendasi.end(), [](const Lagu &a, const Lagu &b) {
                             return a.judul < b.judul;
@@ -719,22 +746,26 @@ int main()
                         int batchSize = 10;
                         int start = 0;
 
-                        if (totalRekomendasi >= 0) {
+                        if (totalRekomendasi <= 0) {
                             cout << "Tidak bisa menampilkan rekomendasi\nBelum ada lagu yang ditambahkan" << endl;
                             system("pause");
                             continue;
                         }
 
-                        while (start < totalRekomendasi) {
+                        while (start < totalRekomendasi)
+                        {
                             system("cls");
-                            cout << "       === HASIL REKOMENDASI ===     \n" << endl;
+                            cout << "       === HASIL REKOMENDASI ===     \n"
+                                 << endl;
                             cout << "========== Menampilkan rekomendasi dari " << start + 1 << " hingga " << min(start + batchSize, totalRekomendasi) << " dari total " << totalRekomendasi << " rekomendasi. ==========" << endl;
 
-                            for (int i = start; i < start + batchSize && i < totalRekomendasi; ++i) {
+                            for (int i = start; i < start + batchSize && i < totalRekomendasi; ++i)
+                            {
                                 cout << "[" << i + 1 << "] " << daftarRekomendasi[i].judul << " - " << daftarRekomendasi[i].artis << " - " << daftarRekomendasi[i].genre << endl;
                             }
 
-                            if (start + batchSize >= totalRekomendasi) {
+                            if (start + batchSize >= totalRekomendasi)
+                            {
                                 system("pause");
                                 break;
                             }
@@ -742,9 +773,12 @@ int main()
                             cout << "\nIngin melihat 10 rekomendasi lagu selanjutnya? (y/t)\n> ";
                             string jawaban;
                             cin >> jawaban;
-                            if (jawaban[0] == 'y') {
+                            if (jawaban[0] == 'y')
+                            {
                                 start += batchSize;
-                            } else {
+                            }
+                            else
+                            {
                                 break;
                             }
                         }
@@ -773,7 +807,7 @@ int main()
             cout << "Pilihan tidak valid.\n";
             system("pause");
         }
-    }
-    while (pilihan != "3");
+    } while (pilihan != "3");
+
     return 0;
 }
