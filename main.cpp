@@ -91,6 +91,29 @@ void displayPasswordPrompt(string &password)
 void registerUser(User &user)
 {
     displayInput("username", user.username);
+    
+    // Check if username already exists
+    ifstream readFile("output/users.csv");
+    if (readFile.is_open())
+    {
+        string line, dataUsername, dataPassword;
+        while (getline(readFile, line))
+        {
+            stringstream ss(line);
+            getline(ss, dataUsername, ',');
+            getline(ss, dataPassword, ',');
+
+            if (dataUsername == user.username)
+            {
+                cout << "\nUsername sudah ada, silakan gunakan username lain." << endl;
+                readFile.close();
+                system("pause");
+                return;
+            }
+        }
+        readFile.close();
+    }
+
     displayPasswordPrompt(user.password);
 
     // Memeriksa direktori ada atau tidak, jika tidak, maka buat baru
