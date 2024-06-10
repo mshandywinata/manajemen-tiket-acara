@@ -105,10 +105,12 @@ void registerUser(User &user)
         file << user.username << "," << user.password << endl;
         file.close();
         cout << "\nRegistrasi berhasil" << endl;
+        system("pause");
     }
     else
     {
         cout << "\nGagal membuka file" << endl;
+        system("pause");
     }
 }
 
@@ -128,8 +130,8 @@ bool loginUser(User &user)
             getline(ss, dataUsername, ',');
             getline(ss, dataPassword, ',');
 
-            // Debugging output
-            cout << "Membaca dari file: Username=" << dataUsername << ", Password=" << dataPassword << endl;
+            // // Debugging output
+            // cout << "Membaca dari file: Username=" << dataUsername << ", Password=" << dataPassword << endl;
 
             if (dataUsername == user.username)
             {
@@ -138,11 +140,13 @@ bool loginUser(User &user)
                 {
                     file.close();
                     cout << "\nLogin berhasil" << endl;
+                    system("pause");
                     return true;
                 }
                 else
                 {
                     cout << "\nPassword salah, coba periksa kembali" << endl;
+                    system("pause");
                     file.close();
                     return false;
                 }
@@ -152,11 +156,13 @@ bool loginUser(User &user)
         if (!dataUserDitemukan)
         {
             cout << "\nUsername tidak ditemukan, Anda perlu mendaftar terlebih dahulu." << endl;
+            system("pause");
         }
     }
     else
     {
         cout << "\nGagal membuka file" << endl;
+        system("pause");
     }
 
     return false;
@@ -543,22 +549,22 @@ void displayMenu()
 
 int main()
 {
-    int pilihan;
+    string pilihan;
     bool sedangLogin = false;
     User user;
     buatGraphCsv();
 
     do
     {
+        system("cls");
         displayMenu();
-        cin >> pilihan;
-        cin.ignore(); // to clear the newline character from the input buffer
+        cin >> pilihan; cin.ignore();
 
-        if (pilihan == 1)
+        if (pilihan == "1")
         {
             registerUser(user);
         }
-        else if (pilihan == 2)
+        else if (pilihan == "2")
         {
             if (loginUser(user))
             {
@@ -747,16 +753,18 @@ int main()
                 }
             }
         }
-        else if (pilihan == 3)
+        else if (pilihan == "3")
         {
             system("cls");
             cout << "Keluar dari program.\n";
+            system("pause");
         }
         else
         {
             cout << "Pilihan tidak valid.\n";
+            system("pause");
         }
-    } while (pilihan != 3);
-
+    }
+    while (pilihan != "3");
     return 0;
 }
