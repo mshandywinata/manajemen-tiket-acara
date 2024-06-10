@@ -110,6 +110,7 @@ void registerUser(User &user)
     else
     {
         cout << "\nGagal membuka file" << endl;
+        cout << "Belum ada user yang terdaftar" << endl;
         system("pause");
     }
 }
@@ -682,8 +683,9 @@ int main()
 
                         ifstream file(filename);
                         if (!file.is_open()) {
-                            cout << "Tidak dapat membuka file " << filename << endl;
-                            return 1;
+                            cout << "Tidak bisa menampilkan rekomendasi\nBelum ada lagu yang ditambahkan" << endl;
+                            system("pause");
+                            continue;
                         }
                         
                         string line;
@@ -716,6 +718,12 @@ int main()
                         int totalRekomendasi = daftarRekomendasi.size();
                         int batchSize = 10;
                         int start = 0;
+
+                        if (totalRekomendasi >= 0) {
+                            cout << "Tidak bisa menampilkan rekomendasi\nBelum ada lagu yang ditambahkan" << endl;
+                            system("pause");
+                            continue;
+                        }
 
                         while (start < totalRekomendasi) {
                             system("cls");
@@ -758,6 +766,7 @@ int main()
             system("cls");
             cout << "Keluar dari program.\n";
             system("pause");
+            system("cls");
         }
         else
         {
